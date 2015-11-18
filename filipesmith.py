@@ -12,7 +12,7 @@ from mapengine.base import Actor, MainActor, GameObject, Event
 
 class Heroi(MainActor):
     ultima_direcao = (0, -1)
-    municao = 3
+    municao = 0
     firetick = 0
     margin=7
     image_sequence = "heroi.png", 91
@@ -82,7 +82,8 @@ class Parede(GameObject):
     
 class Municao(Actor):
     quantidade = 5
-    def on_over(self, other):
+    hardness = 5
+    def on_touch(self, other):
         if isinstance(other, MainActor):
             self.kill()
             other.municao += self.quantidade
@@ -92,7 +93,10 @@ class Saida(GameObject):
     def on_over(self, other):
         if not isinstance(other, Heroi):
             return
-        self.controller.load_scene(Scene("mapa02", display_type="overlay", margin=0))
+        proximas = {"quadra": "mapa01",
+                    "mapa01": "mapa02"}
+        atual = self.controller.scene.scene_name
+        self.controller.load_scene(Scene(proximas[atual], display_type="overlay", margin=0))
         self.controller.force_redraw = True
 
 class Tiro(Actor):
@@ -103,9 +107,15 @@ class Tiro(Actor):
         super(Tiro, self).update()
         self.move(self.direcao)
 
+class Velho(Actor):
+    hardness = 5
+    def on_touch(self, other):
+        self.show_text(u"Então meu filho, deixa eu dizer...", duration=5)
 
 def principal():
-    cena = Scene("mapa01", display_type="overlay", margin=0)
+    cena = Scene("quadra", display_type="overlay", margin=0)
+    cena.width=8
+    cena.height=6
     simpleloop(cena, (800, 600))
  
  
