@@ -110,7 +110,9 @@ class Tiro(Actor):
 class Velho(Actor):
     hardness = 5
     def on_touch(self, other):
-        self.show_text(u"Então meu filho, deixa eu dizer...", duration=5)
+        self.show_text(u"Hey garoto! Chega mais...", duration=5)
+        self.show_text(u"Eu sei que você tem prova amanhã e sei como te ajudar...", duration=5)
+        self.show_text(u"Me siga...", duration=5)
 
 def principal():
     cena = Scene("quadra", display_type="overlay", margin=0)
