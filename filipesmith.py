@@ -4,10 +4,12 @@
 import sys
 import os
 import random
+
+import pygame
 sys.path.append(os.getcwd() + "/mapengine/")
 
  
-from mapengine import Scene, simpleloop
+from mapengine import Scene, simpleloop, Cut
 from mapengine.base import Actor, MainActor, GameObject, Event
 
 class Heroi(MainActor):
@@ -20,6 +22,7 @@ class Heroi(MainActor):
         super(Heroi, self).move(direction)
         self.ultima_direcao = direction
     def on_fire(self):
+        super(Heroi, self).on_fire()
         if self.tick - self.firetick < 5:
             return
         self.firetick = self.tick
@@ -93,10 +96,22 @@ class Saida(GameObject):
     def on_over(self, other):
         if not isinstance(other, Heroi):
             return
-        proximas = {"quadra": "mapa01",
-                    "mapa01": "mapa02"}
+        if not self.controller.diary.get("falou com o velho"):
+            return
+        proximas = {"quadra": ("mapa01", u"Cuidado, zumbis!"),
+                    "mapa01": ("mapa02", u"Seja rápido!")}
         atual = self.controller.scene.scene_name
-        self.controller.load_scene(Scene(proximas[atual], display_type="overlay", margin=0))
+        if atual != "mapa02":
+            cena = Scene(proximas[atual][0], display_type="overlay", margin=0)
+            cena.pre_cut = Cut(proximas[atual][1])
+        else:
+            fundo = pygame.image.load("scenes/tela_final.png")
+            post_cut = Cut(u"Parabens, voce ganhou!", background=fundo, options= [
+                ("Jogar de novo", Scene.default_game_over_continue),
+                ("Sair", Scene.default_game_over_exit),
+            ])
+            self.controller.enter_cut(post_cut)
+        self.controller.load_scene(cena)
         self.controller.force_redraw = True
 
 class Tiro(Actor):
@@ -110,9 +125,11 @@ class Tiro(Actor):
 class Velho(Actor):
     hardness = 5
     def on_touch(self, other):
+        self.controller.diary["falou com o velho"] = True
         self.show_text(u"Hey garoto! Chega mais...", duration=5)
         self.show_text(u"Eu sei que você tem prova amanhã e sei como te ajudar...", duration=5)
         self.show_text(u"Me siga...", duration=5)
+        
 
 def principal():
     cena = Scene("quadra", display_type="overlay", margin=0)
